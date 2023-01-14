@@ -27,7 +27,7 @@ CREATE TABLE Seccion (
 GO
 
 CREATE TABLE Nivel (
-	id_nivel NOT NULL IDENTITY(1,1),
+	id_nivel int NOT NULL IDENTITY(1,1),
 	descripcion varchar(10) NOT NULL,
 	constraint PK_nivel PRIMARY KEY (id_nivel)
 )
@@ -36,7 +36,7 @@ GO
 CREATE TABLE Grado (
 	id_grado int NOT NULL IDENTITY(1,1),
 	nombre varchar(10) NOT NULL,
-	id_nivelEstudiantil int NOT NULL,
+	id_nivel int NOT NULL,
 	constraint PK_grado PRIMARY KEY (id_grado),
 	constraint FK_nivel_grado FOREIGN KEY(id_nivel) REFERENCES Nivel(id_nivel)
 )
@@ -148,7 +148,7 @@ CREATE TABLE Detalle_Venta(
 	precio decimal(2) NOT NULL,
 	fecha_ingreso_Producto date NOT NULL default getdate(),
 	constraint PK_detalle_venta PRIMARY KEY (id_detalle_Venta),
-	constraint FK_venta_DV FOREIGN KEY (id_venta) REFERENCES Venta_Unitaria(id_venta),
+	constraint FK_venta_DV FOREIGN KEY (id_venta) REFERENCES Venta(id_venta),
 	constraint FK_producto_DV FOREIGN KEY (id_detalle_catalogo) REFERENCES Detalle_catalogo(id_detalle_cat)
 )
 GO
