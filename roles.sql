@@ -25,3 +25,15 @@ GRANT EXECUTE ON OBJECT:: SP_update_pedido TO [basico]; GO
 GRANT EXECUTE ON OBJECT:: get_pedido TO [basico]; GO
 GRANT EXECUTE ON OBJECT:: SP_insert_estado_Pedido TO [basico]; GO
 GRANT EXECUTE ON OBJECT:: sp_update_estado_pedido TO [basico]; GO
+
+CREATE LOGIN  nevadaJackson
+    WITH PASSWORD = '^r<D!Cn9Wy{(}9m6';
+CREATE USER usrNevadaJackson FOR LOGIN nevadaJackson;
+ALTER ROLE [basico] ADD MEMBER usrNevadaJackson;
+GO
+
+CREATE LOGIN isabelaAgustina
+    WITH PASSWORD = '+~Sz,)mX=s2@HN.D';
+CREATE USER usrIsabelaAgustina FOR LOGIN isabelaAgustina;
+ALTER ROLE [db_owner] ADD MEMBER usrIsabelaAgustina;
+GO
