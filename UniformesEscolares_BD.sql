@@ -1,25 +1,31 @@
-use master
+/*use master
 go
 drop DATABASE if exists UniformesEscolares
 go
 CREATE DATABASE UniformesEscolares
 GO
 USE UniformesEscolares
-GO
-CREATE TABLE Escuela (
+GO*/
+CREATE TABLE Escuela(
 	id_escuela int NOT NULL IDENTITY(1,1),
 	nombre varchar(100) NOT NULL,
 	director varchar(100) NOT NULL,
 	constraint PK_escuela PRIMARY KEY  (id_escuela)
 )
 GO
-CREATE TABLE Tanda (
+CREATE TABLE size(
+	id_size int NOT NULL IDENTITY(1,1),
+	size varchar(10) NOT NULL,
+	constraint PK_size PRIMARY KEY  (id_size)
+)
+GO
+CREATE TABLE Tanda(
 	id_tanda int NOT NULL IDENTITY(1,1),
 	tanda varchar(25) NOT NULL,
 	constraint PK_tanda PRIMARY KEY (id_tanda)
 )
 GO
-CREATE TABLE Seccion (
+CREATE TABLE Seccion(
 	id_seccion int NOT NULL IDENTITY(1,1),
 	seccion char NOT NULL,
 	constraint PK_seccion PRIMARY KEY (id_seccion)
@@ -96,12 +102,13 @@ CREATE TABLE Detalle_catalogo (
 	id_detalle_cat int NOT NULL IDENTITY(1,1),
 	id_catalogo int NOT NULL,
 	id_producto int NOT NULL, 
-	size varchar(10) NOT NULL,
+	id_size int NOT NULL,
 	precio decimal(2) NOT NULL,
 	precio_combo decimal(2) null,
 	comision decimal(2) NOT NULL default 0,
 	constraint PK_detalle_cat PRIMARY KEY (id_detalle_cat),
 	constraint FK_cat_det FOREIGN KEY (id_catalogo) REFERENCES catalogo(id_catalogo),
+	constraint FK_cat_det_size FOREIGN KEY (id_size) REFERENCES size(id_size),
 	constraint FK_producto_det_cat FOREIGN KEY (id_producto) REFERENCES Producto(id_producto)
 	)
 GO
@@ -119,13 +126,12 @@ GO
 GO
 
 	CREATE TABLE Pedido_Estado (
-	id_pedido_Estado int NOT NULL IDENTITY(1,1),
 	id_pedido int NOT NULL,
 	id_estado int NOT NULL,
-	detalle_estado varchar(100) NOT NULL,
+	detalle_estado varchar(100) NULL,
 	fecha_inicio date NOT NULL default getdate(),
 	fecha_fin date null,
-	constraint PK_pedido_estado PRIMARY KEY (id_pedido_Estado),
+	constraint PK_pedido_estado PRIMARY KEY (id_pedido, id_estado),
 	constraint FK_pedido_PE FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido),
 	constraint PK_estado_PE FOREIGN KEY (id_estado) REFERENCES Estado(id_estado)
 	)
@@ -145,6 +151,7 @@ CREATE TABLE Detalle_Venta(
 	id_venta int NOT NULL,
 	id_detalle_catalogo int NOT NULL,
 	cantidad int NOT NULL,
+	size varchar(10) not null,
 	precio decimal(2) NOT NULL,
 	fecha_ingreso_Producto date NOT NULL default getdate(),
 	constraint PK_detalle_venta PRIMARY KEY (id_detalle_Venta),

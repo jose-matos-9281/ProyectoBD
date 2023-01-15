@@ -3,24 +3,25 @@ go
 
 create procedure Crear_pedido 
 ( @id_escuela int, @fecha_apertura date,
-@fecha_cierre date, @id_cat_prod int
+@fecha_cierre date, @id_catalogo int
 )
 as 
 begin
 	declare @valido int
 	select @valido = COUNT(*) from Pedido 
-	where id_escuela = @id_escuela	and id_cat_productos = @id_cat_prod
+	where id_escuela = @id_escuela	and id_catalogo = @id_catalogo
 	and (
 		(fecha_inicio < @fecha_cierre and fecha_inicio > @fecha_apertura)
 		or(fecha_fin < @fecha_cierre and fecha_fin > @fecha_apertura)
 		)
-	if @valido= 0 
-		insert into  dbo.Pedido (id_escuela,fecha_inicio, fecha_fin,id_cat_productos)
-		values (@id_escuela,@fecha_apertura, @fecha_cierre,@id_cat_prod)
-	else
+	if @valido <> 0 
 		throw  51000, 'Ya existe un pedido abierto entre esas fecha', 1;
+
+	exec UniformesEscolares.dbo.insert_pedido @id_escuela, @fecha_apertura, @fecha_cierre, @id_catalogo
 end
 go
+
+
 
 create procedure abrir_pedido
 (@id_pedido int, @force int  = 0, @detalle_estado varchar(100)=null)
