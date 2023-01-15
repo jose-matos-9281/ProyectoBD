@@ -92,3 +92,255 @@ BEGIN
     EXEC msdb.dbo.sp_purge_jobhistory;
 END;
 GO
+/*
+Full Backup Job
+*/
+DECLARE @jobId binary(16)
+SELECT @jobId = job_id FROM msdb.dbo.sysjobs WHERE (name = N'Full backup')
+IF (@jobId IS NOT NULL)
+BEGIN
+    EXEC msdb.dbo.sp_delete_job @jobId
+END
+EXEC msdb.dbo.sp_add_job
+    @job_name = N'Full backup' ;
+GO
+EXEC msdb.dbo.sp_add_jobstep
+    @job_name = N'Full backup',
+    @step_name = N'Set database to read only',
+    @subsystem = N'TSQL',
+    @command = N'ALTER DATABASE UniformesEscolares SET READ_ONLY',
+    @retry_attempts = 5,
+    @retry_interval = 5 ;
+GO
+EXEC msdb.dbo.sp_add_jobstep
+    @job_name = N'Full backup',
+    @step_name = N'Full Database backup',
+    @subsystem = N'TSQL',
+    @command = N'Execute BackupFull',
+    @retry_attempts = 5,
+    @retry_interval = 5 ;
+GO
+EXEC msdb.dbo.sp_add_jobstep
+    @job_name = N'Full backup',
+    @step_name = N'Set database to read write',
+    @subsystem = N'TSQL',
+    @command = N'ALTER DATABASE UniformesEscolares SET READ_WRITE',
+    @retry_attempts = 5,
+    @retry_interval = 5 ;
+GO
+EXEC msdb.dbo.sp_add_schedule
+    @schedule_name = N'RunWeekly',
+    @freq_type = 8, -- semanal
+    @freq_interval = 2, -- lunes
+     @freq_recurrence_factor = 1,
+    @active_start_time = 000000 ; -- 12PM
+EXEC msdb.dbo.sp_attach_schedule
+   @job_name = N'Full backup',
+   @schedule_name = N'RunWeekly';
+GO
+EXEC msdb.dbo.sp_add_jobserver
+    @job_name = N'Full backup';
+GO
+
+/*
+Diferential Backup Job
+*/
+DECLARE @jobId binary(16)
+
+SELECT @jobId = job_id FROM msdb.dbo.sysjobs WHERE (name = N'Backup diferencial')
+IF (@jobId IS NOT NULL)
+BEGIN
+    EXEC msdb.dbo.sp_delete_job @jobId
+END
+EXEC msdb.dbo.sp_add_job
+    @job_name = N'Backup diferencial' ;
+GO
+EXEC msdb.dbo.sp_add_jobstep
+    @job_name = N'Backup diferencial',
+    @step_name = N'Set database to read only',
+    @subsystem = N'TSQL',
+    @command = N'ALTER DATABASE UniformesEscolares SET READ_ONLY',
+    @retry_attempts = 5,
+    @retry_interval = 5 ;
+GO
+EXEC msdb.dbo.sp_add_jobstep
+    @job_name = N'Backup diferencial',
+    @step_name = N'Do Diferential backup',
+    @subsystem = N'TSQL',
+    @command = N'Execute BackupDiferential',
+    @retry_attempts = 5,
+    @retry_interval = 5 ;
+GO
+EXEC msdb.dbo.sp_add_jobstep
+    @job_name = N'Backup diferencial',
+    @step_name = N'Set database to read write mode',
+    @subsystem = N'TSQL',
+    @command = N'ALTER DATABASE UniformesEscolares SET READ_WRITE',
+    @retry_attempts = 5,
+    @retry_interval = 5 ;
+GO
+EXEC msdb.dbo.sp_add_schedule
+    @schedule_name = N'RunDaily',
+    @freq_type = 4,
+    @freq_interval = 1,
+    @active_start_time = 000000 ;
+EXEC msdb.dbo.sp_attach_schedule
+   @job_name = N'Backup diferencial',
+   @schedule_name = N'RunDaily';
+GO
+EXEC msdb.dbo.sp_add_jobserver
+    @job_name = N'Backup diferencial';
+GO
+
+/*
+Log Backup Job
+*/
+DECLARE @jobId binary(16)
+SELECT @jobId = job_id FROM msdb.dbo.sysjobs WHERE (name = N'Log Backup')
+IF (@jobId IS NOT NULL)
+BEGIN
+    EXEC msdb.dbo.sp_delete_job @jobId
+END
+EXEC msdb.dbo.sp_add_job
+    @job_name = N'Log Backup' ;
+GO
+EXEC msdb.dbo.sp_add_jobstep
+    @job_name = N'Log Backup',
+    @step_name = N'Set database to read only',
+    @subsystem = N'TSQL',
+    @command = N'ALTER DATABASE UniformesEscolares SET READ_ONLY',
+    @retry_attempts = 5,
+    @retry_interval = 5 ;
+GO
+EXEC msdb.dbo.sp_add_jobstep
+    @job_name = N'Log Backup',
+    @step_name = N'Do log backup',
+    @subsystem = N'TSQL',
+    @command = N'Execute LogBackup',
+    @retry_attempts = 5,
+    @retry_interval = 5 ;
+GO
+EXEC msdb.dbo.sp_add_jobstep
+    @job_name = N'Log Backup',
+    @step_name = N'Set database to read write only',
+    @subsystem = N'TSQL',
+    @command = N'ALTER DATABASE UniformesEscolares SET READ_WRITE',
+    @retry_attempts = 5,
+    @retry_interval = 5 ;
+GO
+EXEC msdb.dbo.sp_add_schedule
+    @schedule_name = N'RunEvery15Minutes',
+    @freq_type = 4, -- on daily basis
+    @freq_interval = 1, -- don't use this one
+    @freq_subday_type = 4,  -- units between each exec: minutes
+    @freq_subday_interval = 15,  -- number of units between each exec
+    @active_start_time = 000000 ;
+EXEC msdb.dbo.sp_attach_schedule
+   @job_name = N'Log Backup',
+   @schedule_name = N'RunEvery15Minutes';
+GO
+EXEC msdb.dbo.sp_add_jobserver
+    @job_name = N'Log Backup' ;
+GO
+
+/*
+Index, rebuild index and stadistics
+-- auto create
+*/
+DECLARE @jobId binary(16)
+SELECT @jobId = job_id FROM msdb.dbo.sysjobs WHERE (name = N'Mantenimiento de indices')
+IF (@jobId IS NOT NULL)
+BEGIN
+    EXEC msdb.dbo.sp_delete_job @jobId
+END
+EXEC msdb.dbo.sp_add_job
+    @job_name = N'Mantenimiento de indices' ;
+GO
+EXEC msdb.dbo.sp_add_jobstep
+    @job_name = N'Mantenimiento de indices' ,
+    @step_name = N'Rebuild indexes',
+    @subsystem = N'TSQL',
+    @command = N'EXECUTE MantenimientoIndices',
+    @retry_attempts = 5,
+    @retry_interval = 5 ;
+GO
+EXEC msdb.dbo.sp_add_jobstep
+    @job_name = N'Mantenimiento de indices' ,
+    @step_name = N'Actualizar stadistics',
+    @subsystem = N'TSQL',
+    @command = N'USE UniformesEscolares; GO
+    EXEC sp_updatestats;',
+    @retry_attempts = 5,
+    @retry_interval = 5 ;
+GO
+EXEC msdb.dbo.sp_attach_schedule
+   @job_name = N'Mantenimiento de indices' ,
+   @schedule_name = N'RunWeekly';
+GO
+EXEC msdb.dbo.sp_add_jobserver
+    @job_name = N'Mantenimiento de indices';
+GO
+/*
+check database integrity
+*/
+DECLARE @jobId binary(16)
+SELECT @jobId = job_id FROM msdb.dbo.sysjobs WHERE (name = N'Revision de integridad')
+IF (@jobId IS NOT NULL)
+BEGIN
+    EXEC msdb.dbo.sp_delete_job @jobId
+END
+EXEC msdb.dbo.sp_add_job
+    @job_name = N'Revision de integridad' ;
+GO
+EXEC msdb.dbo.sp_add_jobstep
+    @job_name = N'Revision de integridad',
+    @step_name = N'Check database integrity',
+    @subsystem = N'TSQL',
+    @command = N'USE UniformesEscolares; DBCC CHECKDB',
+    @retry_attempts = 5,
+    @retry_interval = 5 ;
+GO
+EXEC msdb.dbo.sp_attach_schedule
+   @job_name = N'Revision de integridad',
+   @schedule_name = N'RunWeekly';
+GO
+EXEC msdb.dbo.sp_add_jobserver
+    @job_name = N'Revision de integridad' ;
+GO
+
+/*
+History cleanup
+*/
+DECLARE @jobId binary(16)
+SELECT @jobId = job_id FROM msdb.dbo.sysjobs WHERE (name = N'Limpiar historial')
+IF (@jobId IS NOT NULL)
+BEGIN
+    EXEC msdb.dbo.sp_delete_job @jobId
+END
+EXEC msdb.dbo.sp_add_job
+    @job_name = N'Limpiar historial' ;
+GO
+EXEC msdb.dbo.sp_add_jobstep
+    @job_name = N'Backups Limpiar historial',
+    @step_name = N'Clear database backups history',
+    @subsystem = N'TSQL',
+    @command = N'EXEC UniformesEscolares.dbo.spMaintanceCleanBackpupHistory',
+    @retry_attempts = 5,
+    @retry_interval = 5 ;
+GO
+EXEC msdb.dbo.sp_add_jobstep
+    @job_name = N'Jobs Limpiar historial',
+    @step_name = N'Clear jobs history',
+    @subsystem = N'TSQL',
+    @command = N'EXEC UniformesEscolares.dbo.spMaintanceCleanJobHistory',
+    @retry_attempts = 5,
+    @retry_interval = 5 ;
+GO
+EXEC msdb.dbo.sp_attach_schedule
+   @job_name = N'Limpiar historial',
+   @schedule_name = N'RunWeekly';
+GO
+EXEC msdb.dbo.sp_add_jobserver
+    @job_name = N'Limpiar historial';
+GO
+
