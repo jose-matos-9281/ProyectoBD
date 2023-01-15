@@ -6,6 +6,10 @@ CREATE DATABASE UniformesEscolares
 GO
 USE UniformesEscolares
 GO
+
+ALTER DATABASE UniformesEscolares
+SET AUTO_CREATE_STATISTICS ON;
+
 CREATE TABLE Escuela (
 	id_escuela int NOT NULL IDENTITY(1,1),
 	nombre varchar(100) NOT NULL,
