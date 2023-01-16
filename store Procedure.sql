@@ -366,13 +366,13 @@ begin
 end
 go
 
-DROP PROCEDURE IF EXISTS get_pedido
+DROP function IF EXISTS get_pedido
 GO
-create procedure get_pedido(@id_pedido int )
-as
-begin
+create function get_pedido(@id_pedido int )
+returns table as return(
+
 select * from Pedido where id_pedido=@id_pedido
-end
+)
 go
 
 

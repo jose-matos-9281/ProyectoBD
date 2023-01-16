@@ -17,12 +17,6 @@ CREATE TABLE Escuela(
 	constraint PK_escuela PRIMARY KEY clustered (id_escuela)
 )
 GO
-CREATE TABLE size(
-	id_size int NOT NULL IDENTITY(1,1),
-	size varchar(10) NOT NULL,
-	constraint PK_size PRIMARY KEY  (id_size)
-)
-GO
 CREATE TABLE Tanda(
 	id_tanda int NOT NULL IDENTITY(1,1),
 	tanda varchar(25) NOT NULL,
@@ -78,19 +72,17 @@ CREATE TABLE Estudiante (
 GO
 */
 
+CREATE TABLE size(
+	id_size int NOT NULL IDENTITY(1,1),
+	size varchar(10) NOT NULL,
+	constraint PK_size PRIMARY KEY  (id_size)
+)
+GO
 CREATE TABLE Producto (
 	id_producto int NOT NULL IDENTITY(1,1),
 	nombre varchar(100) NOT NULL,
 	descripcion nvarchar(max) null,
 	constraint PK_producto PRIMARY KEY clustered (id_producto)
-)
-GO
-CREATE TABLE Estado (
-	id_Estado int NOT NULL,
-	nombre varchar(30) not null,
-	descripcion varchar(100) NULL,
-	siguiente int not null default 0,
-	constraint PK_estado PRIMARY KEY clustered (id_Estado)
 )
 GO
 
@@ -117,6 +109,14 @@ CREATE TABLE Detalle_catalogo (
 	)
 GO
 
+CREATE TABLE Estado (
+	id_Estado int NOT NULL,
+	nombre varchar(30) not null,
+	descripcion varchar(100) NULL,
+	siguiente int not null default 0,
+	constraint PK_estado PRIMARY KEY clustered (id_Estado)
+)
+GO
 	CREATE TABLE Pedido (
 	id_pedido int NOT NULL IDENTITY(1,1),
 	id_escuela int NOT NULL,
