@@ -2,6 +2,8 @@ use UniformesEscolares
 go
 
 -- catalogo
+DROP PROCEDURE IF EXISTS SP_insert_catalogo
+GO
 create procedure SP_insert_catalogo (@nombre varchar(25))
 as 
 begin
@@ -9,6 +11,8 @@ begin
 end
 go
 
+DROP PROCEDURE IF EXISTS SP_update_catalogo
+GO
 create procedure SP_update_catalogo(@id_catalogo int ,@nombre varchar(25))
 as 
 begin
@@ -18,6 +22,8 @@ begin
 end
 go
 
+DROP PROCEDURE IF EXISTS  SP_get_catalogo
+GO
 create procedure SP_get_catalogo(@id_catalogo int )
 as begin
 select * from catalogo  where id_catalogo=@id_catalogo
@@ -25,6 +31,8 @@ end
 go
 
 -- catalogo_detalle
+DROP PROCEDURE IF EXISTS SP_insert_catalogo_detalle
+GO
 create procedure SP_insert_catalogo_detalle (
 @id_catalogo int, @id_producto int, @id_size int, 
 @precio decimal(2), @precio_combo decimal(2), @comision decimal(2)
@@ -35,6 +43,8 @@ begin
 end
 go
 
+DROP PROCEDURE IF EXISTS SP_update_detalle_catalogo
+GO
 create procedure SP_update_detalle_catalogo(
 @id_detalle_catalogo int, @id_catalogo int, @id_producto int, @id_size int, 
 @precio decimal(2), @precio_combo decimal(2), @comision decimal(2)
@@ -51,6 +61,8 @@ begin
 end
 go
 
+DROP function IF EXISTS  get_detalle_catalogo_Pedido
+GO
 create function get_detalle_catalogo_Pedido(@id_pedido int )
 returns table as return 	
 (
@@ -65,6 +77,8 @@ select id_detalle_cat
 go
 
 -- check pedido_abierto
+DROP function IF EXISTS check_pedido_abierto
+GO
 create function check_pedido_abierto (@id_pedido int, @fecha_venta date )
 returns int as 
 begin
@@ -78,7 +92,8 @@ go
 
 
 -- Detalle Venta
-
+DROP function IF EXISTS check_producto_venta
+GO
 create function check_producto_venta(@id_venta int, @id_detalle_catalogo int, @fecha_venta date)
 returns int as 
 begin
@@ -98,7 +113,9 @@ begin
 end
 go
 
-create procedure insert_detalle_venta 
+DROP PROCEDURE IF EXISTS SP_insert_detalle_venta
+GO
+create procedure SP_insert_detalle_venta 
 (@id_venta int, @cantidad varchar(25), @id_detalle_catalogo int, @fecha_ingreso date = null )
 as 
 begin
@@ -122,9 +139,9 @@ begin
 end
 go
 
-
-
-create procedure update_detalle_venta
+DROP PROCEDURE IF EXISTS sp_update_detalle_venta
+GO
+create procedure sp_update_detalle_venta
 (@id_detalle_venta int,@id_venta int, @precio decimal(2), @cantidad varchar(25), @id_detalle_catalogo int = null)
 as 
 begin
@@ -155,6 +172,8 @@ begin
 end
 go
 
+DROP function IF EXISTS get_detalle_venta
+GO
 create function get_detalle_venta(@id_venta int )
 returns table as return(
 
@@ -164,7 +183,8 @@ go
 
 -- Venta
 
-
+DROP PROCEDURE IF EXISTS SP_insert_venta
+GO
 create procedure SP_insert_venta (@nombre varchar(25), @id_pedido int, @fecha_venta date = null )
 as 
 begin
@@ -179,6 +199,8 @@ begin
 end
 go
 
+DROP function IF EXISTS check_update_pedido_venta
+GO
 create function check_update_pedido_venta(@id_venta int, @id_pedido_new int)
 returns int
 as begin
@@ -202,36 +224,41 @@ as begin
 end
 go
 
+DROP PROCEDURE IF EXISTS SP_update_venta
+GO
 create procedure SP_update_venta
 (@id_venta int, @nombre varchar(25) = null, @id_pedido int = null, @fecha_venta date = null)
 as 
 begin
 	if @fecha_venta is null
 		select @fecha_venta = fecha_venta from Venta where id_venta = @id_venta
-	if @id_pedido is null
-		select @id_pedido = id_pedido from Venta where id_venta = @id_venta
 	if @nombre is null
 		select @nombre = nombre_Estudiante from Venta where id_venta = @id_venta
-	else if dbo.check_pedido_abierto(@id_pedido, @fecha_venta) = 1 and dbo.check_update_pedido_venta(@id_venta,@id_pedido) = 1
-		
-		update venta
-		set 
-			nombre_Estudiante=@nombre,
-			id_pedido=@id_pedido
-		where id_venta=@id_venta
-	else 
-		print('NO Se actualizo la venta')
+	if @id_pedido is null
+		select @id_pedido = id_pedido from Venta where id_venta = @id_venta
+
+	if dbo.check_pedido_abierto(@id_pedido, @fecha_venta) = 0 or dbo.check_update_pedido_venta(@id_venta,@id_pedido) = 0
+		print('NO Se actualizo la venta');
+
+	update venta
+	set 
+		nombre_Estudiante=@nombre,
+		id_pedido=@id_pedido
+	where id_venta=@id_venta
 end
 go
 
-create procedure get_venta(@id_venta int )
-as
-begin
+DROP function IF EXISTS get_venta
+GO
+create function get_venta(@id_venta int )
+returns table as return (
 select * from Venta  where id_venta=@id_venta
-end
+)
 go
 
 -- Escuela
+DROP PROCEDURE IF EXISTS  SP_insert_Escuela
+GO
 create procedure SP_insert_Escuela (@nombre varchar(100), @director varchar(100) )
 as 
 begin
@@ -240,6 +267,8 @@ begin
 end
 go
 
+DROP PROCEDURE IF EXISTS SP_update_escuela
+GO
 create procedure SP_update_escuela(@id_escuela int, @nombre varchar(100), @director varchar(100))
 as 
 begin
@@ -250,14 +279,17 @@ begin
 end
 go
 
-create procedure get_escuela(@id_escuela int )
-as
-begin
+DROP function IF EXISTS get_escuela
+GO
+create function get_escuela(@id_escuela int )
+returns table as return(
 select * from Escuela where id_escuela=@id_escuela
-end
+)
 go
 
 -- Producto
+DROP PROCEDURE IF EXISTS SP_insert_Producto
+GO
 create procedure SP_insert_Producto (@nombre varchar(100), @descripcion text )
 as 
 begin
@@ -266,6 +298,8 @@ begin
 end
 go
 
+DROP PROCEDURE IF EXISTS SP_update_producto
+GO
 create procedure SP_update_producto(@id_producto int, @nombre varchar(100), @descripcion text)
 as 
 begin
@@ -276,6 +310,8 @@ begin
 end
 go
 
+DROP PROCEDURE IF EXISTS get_producto
+GO
 create procedure get_producto(@id_producto int )
 as
 begin
@@ -284,6 +320,8 @@ end
 go
 
 -- Estado
+DROP function IF EXISTS get_id_estado
+GO
 create function get_id_estado(@nombre varchar(30))
 returns int as 
 begin 
@@ -295,6 +333,8 @@ go
 
 
 -- Pedido
+DROP PROCEDURE IF EXISTS SP_insert_pedido
+GO
 create procedure SP_insert_pedido (@id_escuela int, @fecha_inicio date, @fecha_fin date, @id_catalogo int )
 as 
 begin
@@ -302,12 +342,21 @@ begin
 		throw 510000, 'La fecha de inicio no puede ser menor o igual a la fecha fin', 1
 	insert into Pedido(id_catalogo,id_escuela,fecha_inicio, fecha_fin)
 	values(@id_catalogo, @id_escuela, @fecha_inicio, @fecha_fin)
+	exec dbo.sp_cambiar
 end
 go
 
-create procedure SP_update_pedido(@id_pedido int, @id_escuela int, @fecha_inicio date, @fecha_fin date, @id_catalogo int)
+DROP PROCEDURE IF EXISTS SP_update_pedido
+GO
+create procedure SP_update_pedido
+(@id_pedido int, @id_escuela int = null, @fecha_inicio date=null, @fecha_fin date= null, @id_catalogo int=null)
 as 
 begin
+	if @id_escuela IS NULL select @id_escuela = id_escuela from Pedido where id_pedido = @id_pedido;
+	if @id_catalogo IS NULL select @id_catalogo = id_catalogo from Pedido where id_pedido = @id_pedido;
+	if @fecha_inicio IS NULL select @fecha_inicio = fecha_inicio from Pedido where id_pedido = @id_pedido;
+	if @fecha_fin IS NULL select @fecha_fin = fecha_fin from Pedido where id_pedido = @id_pedido;
+
 	update Pedido
 	set id_catalogo=@id_catalogo,
 	id_escuela=@id_escuela,
@@ -317,6 +366,8 @@ begin
 end
 go
 
+DROP PROCEDURE IF EXISTS get_pedido
+GO
 create procedure get_pedido(@id_pedido int )
 as
 begin
@@ -326,7 +377,21 @@ go
 
 
 
+
 -- Estado_pedido
+DROP function IF EXISTS secuencia_estado
+GO
+create function secuencia_estado(@id_estado int)
+returns int as
+begin
+	declare @siguiente int
+	select @siguiente = siguiente from Estado where id_Estado = @id_estado
+	return @siguiente
+end
+go
+
+DROP function IF EXISTS get_estado_actual_pedido
+GO
 create function get_estado_actual_pedido(@id_pedido int)
 returns int as 
 begin 
@@ -339,6 +404,8 @@ begin
 end
 go
 
+DROP PROCEDURE IF EXISTS SP_insert_estado_Pedido
+GO
 create procedure SP_insert_estado_Pedido 
 (@id_pedido int, @id_estado int, @detalle_estado varchar(100) = null, @fecha_inicio date = null, @fecha_fin date = null )
 as 
@@ -351,6 +418,8 @@ begin
 end
 go
 
+DROP PROCEDURE IF EXISTS sp_update_estado_pedido
+GO
 create procedure sp_update_estado_pedido
 (@id_pedido int, @id_estado int, @fecha_fin date = null, @detalle_estado varchar(100) = null)
 as 
@@ -360,6 +429,12 @@ begin
 		from Pedido_Estado 
 		where id_estado = @id_estado
 		and	id_pedido = @id_pedido
+	if @fecha_fin is null
+		select @fecha_fin = fecha_fin 
+		from Pedido_Estado 
+		where id_estado = @id_estado
+		and	id_pedido = @id_pedido
+
 	update Pedido_Estado
 	set 
 	detalle_estado = @detalle_estado,
@@ -369,6 +444,8 @@ begin
 end
 go
 
+DROP function IF EXISTS get_estado_pedido
+GO
 create function get_estado_pedido(@id_estado int, @id_pedido int)
 returns table as return
 (
@@ -376,4 +453,46 @@ select * from Pedido_Estado
 	where id_estado = @id_estado
 	and	id_pedido = @id_pedido
 )
+go
+
+DROP PROCEDURE IF EXISTS SP_cambiar_estado_pedido
+GO
+create procedure SP_cambiar_estado_pedido(@id_pedido int, @fecha date = null)
+as begin
+	declare @actual int, @proximo int, @nombre varchar(30), @fecha_inicio date
+	set @actual = dbo.get_estado_actual_pedido(@id_pedido)
+	select @nombre = nombre from Estado where id_Estado = @actual
+	select @fecha_inicio=fecha_inicio from Pedido_Estado where id_Estado =@actual and id_pedido = @id_pedido
+
+	if @fecha is null 
+		set @fecha = GETDATE()
+	
+	if @fecha < @fecha_inicio
+		throw 510000, 'La fecha final no puede ser menor a la fecha inicial', 1
+
+	if @nombre = 'CREADO' and dbo.check_pedido_abierto(@id_pedido, @fecha) = 0
+		throw 510000, 'No puede abrir el pedido', 1
+	
+	if @nombre = 'ABIERTO' or @nombre = 'REABIERTO' 
+		throw 510000, 'Este procedimiento no debe cerrar pedidos, por favor use SP_cerrar_pedido',1
+
+	if @actual is not null
+		begin
+		set @proximo = dbo.secuencia_estado(@actual)
+		exec sp_update_estado_pedido 
+			@id_pedido = @id_pedido, 
+			@id_estado = @actual,
+			@fecha_fin = @fecha
+		end
+	else 
+		select @proximo = dbo.get_id_estado('CREADO')
+
+	if @proximo <> 0
+		exec SP_insert_estado_Pedido 
+			@id_pedido = @id_pedido,
+			@id_estado = @proximo,
+			@fecha_inicio = @fecha
+		
+
+end
 go

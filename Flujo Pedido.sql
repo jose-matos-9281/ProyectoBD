@@ -1,13 +1,15 @@
 use UniformesEscolares
 go
 
-create procedure Crear_pedido 
+DROP PROCEDURE IF EXISTS SP_Crear_pedido 
+GO
+create procedure SP_Crear_pedido 
 ( @id_escuela int, @fecha_apertura date,
 @fecha_cierre date, @id_catalogo int
 )
 as 
 begin
-	declare @valido int
+	declare @valido int, @id_pedido int
 	select @valido = COUNT(*) from Pedido 
 	where id_escuela = @id_escuela	and id_catalogo = @id_catalogo
 	and (
@@ -17,11 +19,24 @@ begin
 	if @valido <> 0 
 		throw  51000, 'Ya existe un pedido abierto entre esas fecha', 1;
 
-	exec UniformesEscolares.dbo.insert_pedido @id_escuela, @fecha_apertura, @fecha_cierre, @id_catalogo
+	exec dbo.sp_insert_pedido 
+		@id_escuela = @id_escuela, 
+		@fecha_inicio = @fecha_apertura, 
+		@fecha_fin = @fecha_cierre, 
+		@id_catalogo = @id_catalogo
 end
 go
 
-
+drop trigger if exists tg_aI_pedido
+go
+create trigger tg_aI_pedido on pedido after insert 
+as begin 
+	declare @id_pedido int
+	select @id_pedido = id_pedido from inserted
+	exec dbo.sp_cambiar_estado_pedido 
+			@id_pedido = @id_pedido
+end
+go
 
 create procedure abrir_pedido
 (@id_pedido int, @force int  = 0, @detalle_estado varchar(100)=null)
@@ -54,18 +69,6 @@ begin
 end
 go
 
-create function get_estado_pedido(@id_pedido int)
-returns int
-as
-begin 
-	declare @result int
-	select top 1 @result = id_estado 
-		from Pedido_Estado
-		where id_pedido = @id_pedido
-		order by fecha_fin desc
-	return @result
-end
-go
 
 create procedure cerrar_pedido (@id_pedido int,@force int = 0,  @detalle_estado varchar(100) = null)
 as

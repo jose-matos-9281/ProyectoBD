@@ -35,9 +35,8 @@ CREATE TABLE Seccion(
 	constraint PK_seccion PRIMARY KEY clustered (id_seccion)
 )
 GO
-
 CREATE TABLE Nivel (
-	id_nivel int NOT NULL IDENTITY(1,1),
+	id_nivel int NOT NULL,
 	descripcion varchar(10) NOT NULL,
 	constraint PK_nivel PRIMARY KEY clustered (id_nivel)
 )
@@ -86,11 +85,11 @@ CREATE TABLE Producto (
 	constraint PK_producto PRIMARY KEY clustered (id_producto)
 )
 GO
-
 CREATE TABLE Estado (
-	id_Estado int NOT NULL IDENTITY(1,1),
+	id_Estado int NOT NULL,
 	nombre varchar(30) not null,
 	descripcion varchar(100) NULL,
+	siguiente int not null default 0,
 	constraint PK_estado PRIMARY KEY clustered (id_Estado)
 )
 GO
