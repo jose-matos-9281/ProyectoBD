@@ -1,3 +1,6 @@
+use UniformesEscolares
+go
+
 DROP INDEX IF EXISTS IDXNC_catalogo_catalogo ON catalogo;
 GO
 CREATE NONCLUSTERED INDEX IDXNC_catalogo_catalogo
@@ -26,12 +29,6 @@ DROP INDEX IF EXISTS IDXNC_Detalle_Venta_id_venta ON Detalle_Venta;
 GO
 CREATE NONCLUSTERED INDEX IDXNC_Detalle_Venta_id_venta
     ON Detalle_Venta(id_venta);
-GO
-
-DROP INDEX IF EXISTS IDXNC_Escuela_director ON Escuela;
-GO
-CREATE NONCLUSTERED INDEX IDXNC_Escuela_director
-    ON Escuela(director);
 GO
 
 DROP INDEX IF EXISTS IDXNC_Escuela_nombre ON Escuela;

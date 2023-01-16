@@ -53,14 +53,15 @@ CREATE TABLE Grado (
 GO
 
 CREATE TABLE Grado_Seccion (
-	id_gradoSeccion int NOT NULL IDENTITY(1,1),
+	id_grado_seccion int NOT NULL IDENTITY(1,1),
 	id_grado int NOT NULL, 
 	id_seccion int NOT NULL,
 	id_tanda int NOT NULL,
-	constraint PK_grado_seccion PRIMARY KEY clustered (id_gradoSeccion),
+	constraint PK_grado_seccion PRIMARY KEY clustered (id_grado_seccion),
 	constraint FK_grado_GS FOREIGN KEY (id_grado) REFERENCES Grado(id_grado),
 	constraint FK_seccion_GS FOREIGN KEY (id_seccion) REFERENCES Seccion(id_seccion),
-	constraint FK_tanda_GS FOREIGN KEY (id_tanda) REFERENCES Tanda(id_tanda)
+	constraint FK_tanda_GS FOREIGN KEY (id_tanda) REFERENCES Tanda(id_tanda),
+	constraint UN_GST unique (id_tanda,id_seccion, id_grado)
 )
 GO
 
@@ -146,8 +147,10 @@ GO
 	nombre_Estudiante varchar(100) NOT NULL,
 	id_pedido int NOT NULL,
 	fecha_venta date NOT NULL default getdate(),
+	id_grado_seccion int not null,
 	constraint PK_venta PRIMARY KEY clustered (id_venta),
-	constraint FK_pedido_venta FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido)
+	constraint FK_pedido_venta FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido),
+	constraint FK_venta_grado FOREIGN KEY (id_grado_seccion) references Grado_seccion(id_grado_seccion)
 	)
 GO
 CREATE TABLE Detalle_Venta(

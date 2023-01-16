@@ -1,3 +1,6 @@
+use UniformesEscolares
+go
+
 DROP PROCEDURE IF EXISTS MantenimientoIndices
 GO
 CREATE PROCEDURE MantenimientoIndices
@@ -92,6 +95,7 @@ BEGIN
     EXEC msdb.dbo.sp_purge_jobhistory;
 END;
 GO
+
 /*
 Full Backup Job
 */
@@ -280,6 +284,7 @@ GO
 EXEC msdb.dbo.sp_add_jobserver
     @job_name = N'Mantenimiento de indices';
 GO
+
 /*
 check database integrity
 */
