@@ -128,12 +128,14 @@ EXEC msdb.dbo.sp_add_jobstep
     @retry_attempts = 5,
     @retry_interval = 5 ;
 GO
-EXEC msdb.dbo.sp_add_schedule
-    @schedule_name = N'RunWeekly',
+IF ( NOT EXISTS(SELECT * FROM msdb.dbo.sysschedules WHERE name = 'RunWeekly'))
+    BEGIN EXECUTE ('EXEC msdb.dbo.sp_add_schedule
+    @schedule_name = N''RunWeekly'',
     @freq_type = 8, -- semanal
     @freq_interval = 2, -- lunes
      @freq_recurrence_factor = 1,
-    @active_start_time = 000000 ; -- 12PM
+    @active_start_time = 000000 ; -- 12PM')
+END
 EXEC msdb.dbo.sp_attach_schedule
    @job_name = N'Full backup',
    @schedule_name = N'RunWeekly';
@@ -179,11 +181,13 @@ EXEC msdb.dbo.sp_add_jobstep
     @retry_attempts = 5,
     @retry_interval = 5 ;
 GO
-EXEC msdb.dbo.sp_add_schedule
-    @schedule_name = N'RunDaily',
+IF ( NOT EXISTS(SELECT * FROM msdb.dbo.sysschedules WHERE name = 'RunDaily'))
+    BEGIN EXECUTE ('EXEC msdb.dbo.sp_add_schedule
+    @schedule_name = N''RunDaily'',
     @freq_type = 4,
     @freq_interval = 1,
-    @active_start_time = 000000 ;
+    @active_start_time = 000000 ;')
+END
 EXEC msdb.dbo.sp_attach_schedule
    @job_name = N'Backup diferencial',
    @schedule_name = N'RunDaily';
@@ -228,13 +232,15 @@ EXEC msdb.dbo.sp_add_jobstep
     @retry_attempts = 5,
     @retry_interval = 5 ;
 GO
-EXEC msdb.dbo.sp_add_schedule
-    @schedule_name = N'RunEvery15Minutes',
-    @freq_type = 4, -- on daily basis
-    @freq_interval = 1, -- don't use this one
-    @freq_subday_type = 4,  -- units between each exec: minutes
-    @freq_subday_interval = 15,  -- number of units between each exec
-    @active_start_time = 000000 ;
+IF ( NOT EXISTS(SELECT * FROM msdb.dbo.sysschedules WHERE name = 'RunEvery15Minutes'))
+    BEGIN EXECUTE ('EXEC msdb.dbo.sp_add_schedule
+        @schedule_name = N''RunEvery15Minutes'',
+        @freq_type = 4, -- on daily basis
+        @freq_interval = 1, -- don''t use this one
+        @freq_subday_type = 4,  -- units between each exec: minutes
+        @freq_subday_interval = 15,  -- number of units between each exec
+        @active_start_time = 000000 ;')
+END
 EXEC msdb.dbo.sp_attach_schedule
    @job_name = N'Log Backup',
    @schedule_name = N'RunEvery15Minutes';
