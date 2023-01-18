@@ -1,3 +1,6 @@
+use UniformesEscolares
+go
+
 CREATE ROLE basico AUTHORIZATION db_owner;
 GO
 

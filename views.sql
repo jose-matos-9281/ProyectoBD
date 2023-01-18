@@ -16,7 +16,7 @@ GO
 DROP VIEW IF EXISTS vCursos;
 GO
 CREATE VIEW vCursos AS
-    SELECT GS.id_gradoSeccion, G.nombre as Grado, N.descripcion as Nivel, S.seccion as Seccion,
+    SELECT GS.id_grado_seccion, G.nombre as Grado, N.descripcion as Nivel, S.seccion as Seccion,
            T.tanda as Tanda
     FROM Grado_Seccion GS
     INNER JOIN Grado G on G.id_grado = GS.id_grado
