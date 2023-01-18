@@ -60,10 +60,9 @@ go
 delete dbo.estado
 go
 insert into dbo.Estado (id_Estado, nombre, siguiente) values 
-(0,'CREADO',1),
-(1,'ABIERTO',2),
-(2,'CERRADO',4),
-(3,'REABIERTO',2),
+(1,'CREADO',2),
+(2,'ABIERTO',3),
+(3,'CERRADO',4),
 (4,'COMPRADO',5),
 (5,'SERIGRAFIADO',6),
 (6,'EMPAQUADO',7),
