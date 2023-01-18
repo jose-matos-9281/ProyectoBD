@@ -8,9 +8,12 @@ GO
 create function check_producto_venta(@id_venta int, @id_detalle_catalogo int, @fecha_venta date)
 returns int as 
 begin
-	declare @id_pedido int, @result int
-	select @id_pedido = id_pedido from Venta where id_venta = @id_venta
-	if dbo.check_pedido_abierto(@id_pedido, @fecha_venta) = 0
+	declare @id_pedido int, @result int, @E_a int, @E int;
+	select @id_pedido = id_pedido ,
+	@E =dbo.get_estado_actual_pedido(@id_pedido),
+	@E_a = dbo.get_id_estado('CERRADO')
+	from Venta where id_venta = @id_venta
+	if @E = @E_a 
 		return 0
 
 	select @result = COUNT(*)
@@ -27,22 +30,23 @@ go
 DROP PROCEDURE IF EXISTS SP_insert_detalle_venta
 GO
 create procedure SP_insert_detalle_venta 
-(@id_venta int, @cantidad varchar(25), @id_detalle_catalogo int, @fecha_ingreso date = null )
+(@id_venta int, @cantidad int, @id_detalle_catalogo int, @fecha_ingreso date = null )
 as 
 begin
-	if @fecha_ingreso = null
+	if @fecha_ingreso is null
 		set @fecha_ingreso = getdate();
 
 	if dbo.check_producto_venta(@id_venta, @id_detalle_catalogo, @fecha_ingreso) = 0
-		throw 510000, 'El producto no puede ser ingresado',1
+		throw 510000, 'El producto no puede ser ingresado',1;
 	
-	declare @size varchar(10)
-	declare @precio decimal(2)
+
+
+	declare @size varchar(10), @precio money;
 	select @size=size, @precio=precio 
 	from Detalle_catalogo dc
 	inner join size s 
 	on s.id_size = dc.id_size  
-	where id_detalle_cat=@id_detalle_catalogo
+	where id_detalle_cat=@id_detalle_catalogo;
 	
 	insert into Detalle_Venta(id_venta,id_detalle_catalogo,cantidad, size, precio,fecha_ingreso_Producto)
 	values(@id_venta, @id_detalle_catalogo, @cantidad, @size, @precio, @fecha_ingreso)
@@ -53,7 +57,7 @@ go
 DROP PROCEDURE IF EXISTS sp_update_detalle_venta
 GO
 create procedure sp_update_detalle_venta
-(@id_detalle_venta int,@id_venta int, @precio decimal(2), @cantidad varchar(25), @id_detalle_catalogo int = null)
+(@id_detalle_venta int,@id_venta int, @precio money, @cantidad varchar(25), @id_detalle_catalogo int = null)
 as 
 begin
 	declare @id_det_cat_ant int, @size varchar(10), @fecha_ingreso date
@@ -83,7 +87,7 @@ begin
 end
 go
 
-DROP function IF EXISTS get_detalle_venta
+DROP function IF EXISTS get_detalle_ventav
 GO
 create function get_detalle_venta(@id_venta int )
 returns table as return(
@@ -96,17 +100,26 @@ go
 
 DROP PROCEDURE IF EXISTS SP_insert_venta
 GO
-create procedure SP_insert_venta (@nombre varchar(25), @id_pedido int, @fecha_venta date = null )
+create procedure SP_insert_venta 
+(@nombre varchar(25), @id_pedido int,
+@grado varchar(10), @tanda varchar(25), @seccion char(1), @nivel varchar(10)
+,@fecha_venta date = null )
 as 
 begin
 	if @fecha_venta = null
 		set @fecha_venta = getdate();
 
+	declare @id_gs int
+		select @id_gs = dbo.get_id_gs(@grado, @tanda, @seccion, @nivel )
+
+	if @id_gs is null
+		throw 510000, 'El grado no es valido ',1;
+
 	if dbo.check_pedido_abierto(@id_pedido, @fecha_venta) = 0
 		throw 510000, 'La fecha de venta no se encuentra en el rango de tiempo del pedido', 1
 
-	insert into Venta(nombre_Estudiante,id_pedido,fecha_venta)
-	values( @nombre, @id_pedido, @fecha_venta)
+	insert into Venta(nombre_Estudiante,id_grado_seccion,id_pedido,fecha_venta)
+	values( @nombre,@id_gs, @id_pedido, @fecha_venta)
 end
 go
 

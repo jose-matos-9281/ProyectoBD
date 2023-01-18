@@ -80,7 +80,7 @@ go
 
 DROP function IF EXISTS  get_detalle_catalogo_Pedido
 GO
-create function get_detalle_catalogo_Pedido(@id_pedido int )
+create function get_detalle_catalogo_Pedido(@id_pedido int)
 returns table as return 	
 (
 select id_detalle_cat 
@@ -92,3 +92,21 @@ select id_detalle_cat
 	where id_pedido = @id_pedido
 )
 go
+
+DROP function IF EXISTS  get_id_detalle_catalogo
+GO
+create function get_id_detalle_catalogo(
+	@producto varchar(100),@size varchar(10))
+returns int as begin 
+declare @result int
+select @result =id_detalle_cat 
+	from Detalle_catalogo dt
+	inner join Producto p
+	on dt.id_producto = p.id_producto
+	inner join size s
+	on dt.id_size= s.id_size
+	where s.size = @size and p.nombre =@producto
+return 	@result 
+end
+go
+

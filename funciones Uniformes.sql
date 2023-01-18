@@ -1,16 +1,29 @@
 use UniformesEscolares
 go
 
-create function get_id_GS (@id_grado int, @id_tanda int, @id_seccion int)
+drop function if exists get_id_GS
+go
+create function get_id_GS 
+(@grado varchar(10), @tanda varchar(25), @seccion char(1), @nivel varchar(10))
 returns int
 as
 begin 
 	declare @results int
-	select  @results= id_gradoSeccion
-		from dbo.Grado_Seccion
-		where id_grado = @id_grado
-		and id_seccion = @id_seccion
-		and id_tanda = @id_tanda
+	select  @results= id_grado_seccion
+		from dbo.Grado_Seccion gs
+		inner join grado g
+		on g.id_grado = gs.id_grado
+		inner join Seccion s 
+		on s.id_seccion = gs.id_seccion
+		inner join Tanda t
+		on t.id_tanda = gs.id_tanda
+		inner join Nivel N
+		on g.id_nivel = N.id_nivel
+	where 
+		tanda = @tanda
+		and seccion = @seccion 
+		and N.descripcion =  @nivel
+		and g.nombre = @grado
 	return @results
 end 
 go

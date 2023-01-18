@@ -34,8 +34,9 @@ begin
 	declare @result int
 	select top 1 @result = id_estado 
 		from Pedido_Estado
-		where id_pedido = @id_pedido
-		order by fecha_fin desc
+		where id_pedido = 1  and fecha_fin is null
+	if @result is null
+		select @result = MAX(id_estado) from Estado
 	return @result
 end
 go
@@ -61,7 +62,7 @@ GO
 create procedure SP_insert_pedido (@id_escuela int, @fecha_inicio date, @fecha_fin date, @id_catalogo int )
 as 
 begin
-	if @fecha_fin >= @fecha_inicio
+	if @fecha_fin <= @fecha_inicio
 		throw 510000, 'La fecha de inicio no puede ser menor o igual a la fecha fin', 1
 	insert into Pedido(id_catalogo,id_escuela,fecha_inicio, fecha_fin)
 	values(@id_catalogo, @id_escuela, @fecha_inicio, @fecha_fin)
@@ -167,7 +168,7 @@ as begin
 	if @nombre = 'CREADO' and dbo.check_pedido_abierto(@id_pedido, @fecha) = 0
 		throw 510000, 'No puede abrir el pedido', 1
 	
-	if @nombre = 'ABIERTO' or @nombre = 'REABIERTO' 
+	if @nombre = 'ABIERTO' 
 		throw 510000, 'Este procedimiento no debe cerrar pedidos, por favor use SP_cerrar_pedido',1
 
 	if @actual is not null
@@ -228,63 +229,64 @@ as begin
 end
 go
 
-create procedure abrir_pedido
-(@id_pedido int, @force int  = 0, @detalle_estado varchar(100)=null)
+DROP PROCEDURE IF EXISTS SP_abrir_pedido 
+GO
+create procedure SP_abrir_pedido
+(@id_pedido int,  @detalle_estado varchar(100)=null)
 as 
 begin 
 	declare @valido  int
-	select @valido = COUNT(*) from Pedido_Estado
+	select @valido = COUNT(*) from Pedido_Estado pe
+		inner join Estado e
+		on e.id_Estado = pe.id_estado and e.nombre = 'ABIERTO'
 		where id_pedido = @id_pedido
+
 
 	if @valido > 0 
 		throw  51000, 'El pedido ya fue abierto', 1;
 	
-	if @force > 0 
-		update Pedido
-		set fecha_inicio = CONVERT(date, getdate())
-		where id_pedido = @id_pedido;
+	
+	update Pedido
+	set fecha_inicio = CONVERT(date, getdate())
+	where id_pedido = @id_pedido;
 
-	select @valido = COUNT(*) from Pedido
-		where id_pedido = @id_pedido
-		and fecha_inicio < GETDATE()
 
-	if @valido > 0 
-	throw  51000, 'Aun no llega la fecha de apertura del pedido, 
-	si desea abrirlo ahora use el paramentro @force = 1', 1;
-
-	declare @estado int
-	select @estado = id_estado from Estado where descripcion = 'Abierto'
-	insert into Pedido_Estado (id_pedido,id_estado,detalle_estado)
-	values (@id_pedido, @estado,@detalle_estado)
+	exec dbo.sp_cambiar_estado_pedido 
+			@id_pedido = @id_pedido
 end
 go
 
-
-create procedure cerrar_pedido (@id_pedido int,@force int = 0,  @detalle_estado varchar(100) = null)
+drop procedure if exists sp_cerrar_pedido
+go
+create procedure sp_cerrar_pedido (@id_pedido int,@force int = 0,
+@detalle_estado varchar(100) = null)
 as
 begin
 	declare @cerrado int;
 	declare @abierto int;
 	declare @estado int;
-	declare @reabierto int;
 	declare @fecha_cierre date;
-	select @abierto = id_estado from Estado where descripcion = 'Abierto';
-	select @reabierto = id_estado from Estado where descripcion = 'Reabierto';
-	select @cerrado = id_estado from Estado where descripcion = 'Cerrado';
-	set @estado = dbo.get_estado_pedido(@id_pedido)
+	select @abierto = id_estado, @cerrado=siguiente
+	from Estado where nombre = 'ABIERTO';
+	set @estado = dbo.get_estado_actual_pedido(@id_pedido)
 
-	if @estado <> @abierto and @estado<>@reabierto 
-		throw  51000, 'Solo puede cerrar un pedido Abierto o Reabierto', 1;
+	if @estado <> @abierto 
+		throw  51000, 'Solo puede cerrar un pedido Abierto', 1;
 	
 	if @force > 0
 		update Pedido
 		set fecha_fin = CONVERT(date, getdate())
 		where id_pedido = @id_pedido;
+
+		update Pedido_Estado
+		set fecha_fin = CONVERT(date, getdate())
+		where id_pedido = 1--@id_pedido 
+		and id_estado = 2--@abierto;
 		
 	select @fecha_cierre = fecha_fin 
 		from Pedido where id_pedido = @id_pedido;
 
-	if @fecha_cierre < GETDATE()
+	if @fecha_cierre > GETDATE()
 		throw  51000, 'la fecha de cierre del pedido aun no ha llegado, si desea forzar el cierre use el parametro @force=1', 1;
 	
 	insert into Pedido_Estado (id_pedido,id_estado,detalle_estado)
